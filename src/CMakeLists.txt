@@ -38,7 +38,7 @@ if(OVERCLOCK_ENABLED)
         #  3  | 360MHz  |  90MHz    |  1.20(V)
         #  4  | 400MHz  |  100MHz   |  1.30(V)
         #  5  | 416MHz  |  104MHz   |  1.30(V)
-        set(OVERCLOCK_PROFILE 1)
+        set(OVERCLOCK_PROFILE 5)
 
         if(OVERCLOCK_PROFILE EQUAL 1)
             set(SYS_CLK_KHZ 240000)             # CPU clock speed
@@ -97,7 +97,7 @@ set(LCD_HOR_RES 480)
 set(LCD_VER_RES 320)
 set(DISP_OVER_PIO 1) # 1: PIO, 0: GPIO
 set(PIO_USE_DMA   1)   # 1: use DMA, 0: not use DMA
-set(I80_BUS_WR_CLK_KHZ 58000)
+set(I80_BUS_WR_CLK_KHZ 50000)
 
 # Rotation configuration
 set(LCD_ROTATION 1)  # 0: normal, 1: 90 degree, 2: 180 degree, 3: 270 degree
@@ -120,9 +120,6 @@ endif()
 
 include_directories(. ../include)
 
-# add lvgl library here
-add_subdirectory(lvgl)
-
 # include PIO library here
 add_subdirectory(pio)
 target_compile_definitions(pio_i80 PUBLIC LCD_PIN_RS=${LCD_PIN_RS})
@@ -131,19 +128,14 @@ target_compile_definitions(pio_i80 PUBLIC DEFAULT_PIO_CLK_KHZ=${PERI_CLK_KHZ})
 target_compile_definitions(pio_i80 PUBLIC PIO_USE_DMA=${PIO_USE_DMA})
 target_compile_definitions(pio_i80 PUBLIC I80_BUS_WR_CLK_KHZ=${I80_BUS_WR_CLK_KHZ})
 
-# include factory test library here
-# add_subdirectory(factory)
-
-# lv_conf.h need pico header files e.g. the custom tick
-target_link_libraries(lvgl PRIVATE pico_stdlib)
+add_subdirectory(usb)
+add_subdirectory(tjpgd)
 
 # user define common source files
 file(GLOB_RECURSE COMMON_SOURCES
     main.c
     ili9488.c
     ft6236.c
-    porting/lv_port_disp_template.c
-    porting/lv_port_indev_template.c
     i2c_tools.c
     backlight.c
 )
@@ -158,8 +150,8 @@ target_link_libraries(${PROJECT_NAME}
     hardware_pwm
     hardware_i2c
     pio_i80
-    # factory_test
-    lvgl lvgl::demos lvgl::examples
+    usb_device
+    tjpg_decoder
 )
 target_include_directories(${PROJECT_NAME} PUBLIC .)
 

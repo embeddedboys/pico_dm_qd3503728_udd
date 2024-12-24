@@ -350,7 +350,7 @@ static int ili9488_hw_init(struct ili9488_priv *priv)
 
     printf("clearing screen...\n");
     /* clear screen to black */
-    // priv->tftops->clear(priv, 0x0);
+    priv->tftops->clear(priv, 0x0);
 
     return 0;
 }
@@ -368,7 +368,7 @@ const UBaseType_t XArrayIndex = 1;
 
 static void inline ili9488_video_sync(struct ili9488_priv *priv, int xs, int ys, int xe, int ye, void *vmem16, size_t len)
 {
-    pr_debug("video sync: xs=%d, ys=%d, xe=%d, ye=%d, len=%d\n", xs, ys, xe, ye, len);
+    // printf("video sync: xs=%d, ys=%d, xe=%d, ye=%d, len=%d\n", xs, ys, xe, ye, len);
     priv->tftops->set_addr_win(priv, xs, ys, xe, ye);
     write_buf_rs(priv, vmem16, len * 2, 1);
 }
