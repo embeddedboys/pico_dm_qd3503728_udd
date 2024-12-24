@@ -138,7 +138,7 @@ static portTASK_FUNCTION(jpg_task_handler, pvParameters)
 
 
     for (int x = 0; x <= 240; x++) {
-        jd_drawjpg(x, 0, tjpgd, sizeof(tjpgd));
+        jd_drawjpg(x, 0, panda, sizeof(panda));
 
         if (x == 240)
             x = 0;
