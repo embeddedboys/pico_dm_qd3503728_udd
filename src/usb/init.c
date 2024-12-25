@@ -77,27 +77,69 @@ void control_transfer_handler(uint8_t *buf, volatile struct usb_setup_packet *pk
         } else if (pkt->bmRequestType & USB_REQ_TYPE_TYPE_VENDOR) {
             if (pkt->bRequest == REQ_EP0_OUT) {
                 printf("\nReceived request REQ_EP0_OUT, length %u", pkt->wLength);
-                //for (uint i = 0; i < pkt->wLength; i++) printf("%u ", buf[i]);
+                for (uint i = 0; i < pkt->wLength; i++) printf("\n%u ", buf[i]);
+                printf("\n");
             } else if (pkt->bRequest == REQ_EP0_IN) {
                 printf("\nSent request REQ_EP0_IN, length %u", pkt->wLength);
             } else if (pkt->bRequest == REQ_EP1_OUT) {
-                int length = (uint32_t)buf[0] | ((uint32_t)buf[1] << 8);
+                uint8_t command = buf[0];
+                int length = (uint32_t)buf[1] | ((uint32_t)buf[2] << 8);
                 printf("\nReceived request REQ_EP1_OUT. Start EP1 OUT %i", length);
                 struct usb_endpoint_configuration *ep = usb_get_endpoint_configuration(EP1_OUT_ADDR);
+                printf("\n%s, command : 0x%02x", __func__, command);
+
+                uint8_t *txbuf = ep->data_buffer;
+                switch (command) {
+                    case 0x51:
+                        printf("\nDraw JPG");
+                        break;
+                    default:
+                        break;
+                }
+
                 usb_init_transfer(ep, length);
             } else if (pkt->bRequest == REQ_EP2_IN) {
-                int length = (uint32_t)buf[0] | ((uint32_t)buf[1] << 8);
+                uint8_t command = buf[0];
+                int length = (uint32_t)buf[1] | ((uint32_t)buf[2] << 8);
                 printf("\nReceived request REQ_EP2_IN. Start EP2 IN %i", length);
+                printf("\n%s, command : 0x%02x", __func__, command);
+
                 struct usb_endpoint_configuration *ep = usb_get_endpoint_configuration(EP2_IN_ADDR);
+                uint8_t *txbuf = ep->data_buffer;
+                switch (command) {
+                    case 0x00:
+                        printf("\nNop");
+                        txbuf[0] = 0xEF;
+                        break;
+                    case 0x01:
+                        printf("\nRead device name");
+                        txbuf[0] = 0x49;
+                        txbuf[1] = 0x4A;
+                        break;
+                    case 0x02:
+                        printf("\nRead device resolution");
+                        txbuf[0] = 0x13;
+                        txbuf[1] = 0x14;
+                        break;
+                    default:
+                        break;
+                }
                 usb_init_transfer(ep, length);
             }
         }
     }
 }
 
+#include "../tjpgd/tjpgd.h"
+extern JRESULT jd_drawjpg(int32_t x, int32_t y, const uint8_t jpeg_data[], uint32_t  data_size);
 void ep1_out_handler(uint8_t *buf, uint16_t len) {
-    printf("\nEP1 OUT received %d bytes from host", len);
-    //for (uint i = 0; i < len; i++) printf("%u ", buf[i]);
+    // printf("\nEP1 OUT received %d bytes from host", len);
+    // for (uint i = 0; i < len; i++) printf("\n0x%02x ", buf[i]);
+
+    jd_drawjpg(0, 0, buf, len);
 }
 
-void ep2_in_handler(uint8_t *buf, uint16_t len) { printf("\nEP2 IN sent %d bytes to host", len); }
+void ep2_in_handler(uint8_t *buf, uint16_t len) {
+    // printf("\nEP2 IN sent %d bytes to host", len);
+    // for (uint i = 0; i < len; i++) printf("\n%u ", buf[i]);
+}

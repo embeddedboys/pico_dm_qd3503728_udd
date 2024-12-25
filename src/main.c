@@ -42,6 +42,7 @@
 #include "ili9488.h"
 #include "backlight.h"
 #include "tjpgd.h"
+#include "test_jpg.h"
 
 #include "debug.h"
 
@@ -52,7 +53,6 @@ QueueHandle_t xToFlushQueue = NULL;
 
 // }
 
-#include "panda.h"
 uint8_t workspace[TJPGD_WORKSPACE_SIZE] __attribute__((aligned(4)));
 const uint8_t* array_data = NULL;
 uint32_t array_index = 0;
@@ -120,7 +120,6 @@ JRESULT jd_drawjpg(int32_t x, int32_t y, const uint8_t jpeg_data[], uint32_t  da
 
     return jresult;
 }
-#include "tjpgd_img.h"
 
 static portTASK_FUNCTION(jpg_task_handler, pvParameters)
 {
@@ -129,20 +128,14 @@ static portTASK_FUNCTION(jpg_task_handler, pvParameters)
 
     ili9488_driver_init();
 
-    // jd_getsize(&w, &h, panda, sizeof(panda));
+    // jd_getsize(&w, &h, screen_480x320, sizeof(screen_480x320));
     // if (jresult == JDR_OK) {
     //     printf("Decode Okay! w : %d, h : %d\n", w, h);
     // } else {
     //     printf("Decode error!\n");
     // }
 
-
-    for (int x = 0; x <= 240; x++) {
-        jd_drawjpg(x, 0, panda, sizeof(panda));
-
-        if (x == 240)
-            x = 0;
-    }
+    jd_drawjpg(0, 0, screen_480x320, sizeof(screen_480x320));
 
     vTaskDelete(NULL);
 }
