@@ -28,23 +28,21 @@ REQ_EP0_IN = 0X01
 REQ_EP1_OUT = 0X02
 REQ_EP2_IN = 0X03
 
-buffer = [0x00, 1, 0]
+buffer = [0x00, 1, 0, 0x00]
 dev.ctrl_transfer(TYPE_VENDOR | EP_DIR_OUT, REQ_EP2_IN, 0, 0, buffer)
-response = dev.read(0x82, 1)
+response = dev.read(0x82, 2)
 print(response)
 
 # Request EP2
-# buffer = [2, 0, 0x01]
-buffer = [0x01, 2, 0]
+buffer = [0x01, 2, 0, 0x00]
 dev.ctrl_transfer(TYPE_VENDOR | EP_DIR_OUT, REQ_EP2_IN, 0, 0, buffer)
 response = dev.read(0x82, 2)
 print(response)
 
-buffer = [0x02, 2, 0]
+buffer = [0x02, 2, 0, 0x00]
 dev.ctrl_transfer(TYPE_VENDOR | EP_DIR_OUT, REQ_EP2_IN, 0, 0, buffer)
 response = dev.read(0x82, 2)
 print(response)
-
 
 contents = []
 content = open("../assets/red.jpg", "rb").read()
@@ -55,16 +53,18 @@ content = open("../assets/green.jpg", "rb").read()
 content = list(content)
 contents.append(content)
 
-ccontent = open("../assets/blue.jpg", "rb").read()
+content = open("../assets/blue.jpg", "rb").read()
 content = list(content)
-contents.append(ccontent)
+contents.append(content)
 
 i = 0
 while True:
     if i >= len(contents):
         i = 0
     pic = contents[i]
-    buffer = [0x51, len(pic) & 0xFF, len(pic) >> 8]
+    if len(pic) % 2 != 0:
+        pic.append(0xff)
+    buffer = [0x51, len(pic) & 0xFF, len(pic) >> 8, 0x00]
     dev.ctrl_transfer(TYPE_VENDOR | EP_DIR_OUT, REQ_EP1_OUT, 0, 0, buffer)
     a = datetime.datetime.now()
     dev.write(0x01, pic)
@@ -74,5 +74,5 @@ while True:
     # This fps is counting how many frame are sent through the USB in a second
     print("{:.2f} fps".format(fps))
 
-    # i = (i + 1) % len(contents
-    i = i + 1
+    i = (i + 1) % len(contents)
+    # i = i + 1

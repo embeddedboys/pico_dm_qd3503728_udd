@@ -25,7 +25,7 @@ FRAMES_DIR = "/tmp/udd_frames"
 MAX_LENGTH = 40000
 
 # JPEG quality for compression (1 to 100, higher is better quality)
-JPEG_QUALITY = 30
+JPEG_QUALITY = 50
 
 # Target resolution for scaling
 TARGET_WIDTH = 480
@@ -123,7 +123,10 @@ def main():
         if i >= len(media_binaries):
             i = 0
         pic = media_binaries[i]
-        buffer = [0x51, len(pic) & 0xFF, len(pic) >> 8]
+
+        if len(pic) % 2 != 0:
+            pic = pic + b'\xff'
+        buffer = [0x51, len(pic) & 0xFF, len(pic) >> 8, 0x00]
         dev.ctrl_transfer(TYPE_VENDOR | EP_DIR_OUT, REQ_EP1_OUT, 0, 0, buffer)
         a = datetime.datetime.now()
         dev.write(0x01, pic)

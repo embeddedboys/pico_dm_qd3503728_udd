@@ -141,6 +141,7 @@ void control_transfer_handler(uint8_t *buf, volatile struct usb_setup_packet *pk
 }
 
 #include "../tjpgd/tjpgd.h"
+extern JRESULT jd_getsize(uint16_t *w, uint16_t *h, const uint8_t jpeg_data[], uint32_t  data_size);
 extern JRESULT jd_drawjpg(int32_t x, int32_t y, const uint8_t jpeg_data[], uint32_t  data_size);
 void ep1_out_handler(uint8_t *buf, uint16_t len) {
     // printf("EP1 OUT received %d bytes from host\n", len);
@@ -148,7 +149,17 @@ void ep1_out_handler(uint8_t *buf, uint16_t len) {
 
     // TODO: currently, only support full refresh
     start_time = time_us_32();
+
+#if 0
+    uint16_t w, h;
+    JRESULT jresult = JDR_OK;
+    jresult = jd_getsize(&w, &h, buf, len);
+    if (jresult == JDR_OK)
+        jd_drawjpg(0, 0, buf, len);
+#else
     jd_drawjpg(0, 0, buf, len);
+#endif
+
     end_time = time_us_32();
 }
 

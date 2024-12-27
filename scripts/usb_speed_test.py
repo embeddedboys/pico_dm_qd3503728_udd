@@ -43,7 +43,6 @@ for i in range(size):
     val += 1
     if (val == 10) : val = 0
 for i in range(repeat):
-    print(buffer)
     a = datetime.datetime.now()
     dev.ctrl_transfer(TYPE_VENDOR | EP_DIR_OUT, REQ_EP0_OUT, 0, 0, buffer)
     b = datetime.datetime.now()
@@ -94,7 +93,6 @@ for i in range(repeat):
     response = dev.read(0x82, size)
     b = datetime.datetime.now()
     c = b - a
-    print(response)
     kBs += (size / 1024) / (c.microseconds / 1000000)
 print("Request REQ_EP2_IN. Size: %u bytes. Speed: %u kBs" % (size, kBs / repeat))
 #print(response)"""
