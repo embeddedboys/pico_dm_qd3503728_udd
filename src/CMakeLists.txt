@@ -97,7 +97,7 @@ set(LCD_HOR_RES 480)
 set(LCD_VER_RES 320)
 set(DISP_OVER_PIO 1) # 1: PIO, 0: GPIO
 set(PIO_USE_DMA   1)   # 1: use DMA, 0: not use DMA
-set(I80_BUS_WR_CLK_KHZ 50000)
+set(I80_BUS_WR_CLK_KHZ 58000)
 
 # Rotation configuration
 set(LCD_ROTATION 1)  # 0: normal, 1: 90 degree, 2: 180 degree, 3: 270 degree
@@ -109,13 +109,6 @@ elseif(${LCD_ROTATION} EQUAL 1 OR ${LCD_ROTATION} EQUAL 3)
     set(LCD_VER_RES 320)
 else()
     message(FATAL_ERROR "ERROR: Invalid Display rotation")
-endif()
-
-# Display buffer size configuration
-if(${PICO_BOARD} STREQUAL "pico" OR ${PICO_PLATFORM} STREQUAL "rp2040")
-    math(EXPR MY_DISP_BUF_SIZE "${LCD_HOR_RES} * ${LCD_VER_RES} / 4")
-elseif(${PICO_BOARD} STREQUAL "pico2" OR ${PICO_PLATFORM} STREQUAL "rp2350")
-    math(EXPR MY_DISP_BUF_SIZE "${LCD_HOR_RES} * ${LCD_VER_RES} / 2")
 endif()
 
 include_directories(. ../include)
@@ -193,14 +186,12 @@ endif()
 math(EXPR FLASH_CLK_KHZ "${SYS_CLK_KHZ} / ${PICO_FLASH_SPI_CLKDIV}")
 math(EXPR FLASH_CLK_MHZ "${FLASH_CLK_KHZ} / 1000")
 math(EXPR SYS_CLK_MHZ "${SYS_CLK_KHZ} / 1000")
-math(EXPR DISP_BUF_SIZE "${MY_DISP_BUF_SIZE} * 2") # rgb565 cost 2 bytes
 message(WARNING "
     CPU speed   : ${SYS_CLK_MHZ} MHz
     Flash speed : ${FLASH_CLK_MHZ} MHz
     LCD_X       : ${LCD_HOR_RES}
     LCD_Y       : ${LCD_VER_RES}
     LCD rotation: ${LCD_ROTATION}   //0: normal, 1: 90 degree, 2: 180 degree, 3: 270 degree
-    Buffer size : ${DISP_BUF_SIZE} bytes (LVGL Draw Buffer)
 ")
 target_compile_definitions(bs2_default PRIVATE PICO_FLASH_SPI_CLKDIV=${PICO_FLASH_SPI_CLKDIV})
 target_compile_definitions(${PROJECT_NAME} PRIVATE FLASH_CLK_KHZ=${FLASH_CLK_KHZ})

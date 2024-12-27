@@ -158,8 +158,6 @@ static portTASK_FUNCTION(udd_task_handler, pvParameters)
 
     while (!usb_is_configured());
 
-    printf("USB configured\n");
-
     for(;;);
 }
 
