@@ -14,7 +14,7 @@ clean:
 	make -C $(KERN_DIR) M=`pwd` modules clean
 
 test: all
-	sudo rmmod $(MODULE_NAME).ko || \
-	sudo insmod $(MODULE_NAME).ko
+	sudo rmmod $(MODULE_NAME).ko || true
+	sudo insmod $(MODULE_NAME).ko || true
 
 obj-m+=$(MODULE_NAME).o

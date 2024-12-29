@@ -7,9 +7,52 @@
 #include <linux/hid.h>
 #include <linux/input.h>
 
+// A jpeg image of a panda, binary data
 #include "panda.h"
 
 #define DRV_NAME "udd"
+#define UDD_DEFAULT_TIMEOUT 1000
+
+#define EP0_IN_ADDR  (USB_DIR_IN  | 0)
+#define EP0_OUT_ADDR (USB_DIR_OUT | 0)
+#define EP1_OUT_ADDR (USB_DIR_OUT | 1)
+#define EP2_IN_ADDR  (USB_DIR_IN  | 2)
+
+#define TYPE_VENDOR 0x40
+
+#define REQ_EP0_OUT  0X00
+#define REQ_EP0_IN   0X01
+#define REQ_EP1_OUT  0X02
+#define REQ_EP2_IN   0X03
+
+static int udd_flush(struct usb_device *udev, const u8 jpeg_data[], size_t data_size)
+{
+    u8 buffer[] = {0x51, data_size & 0xff, data_size >> 8, 0x00};
+    int rc, actual_length;
+
+    // request setup
+    rc = usb_control_msg(
+        udev,
+        usb_sndctrlpipe(udev, EP0_OUT_ADDR),
+        REQ_EP1_OUT,
+        TYPE_VENDOR | USB_DIR_OUT,
+        0, 0,
+        buffer,
+        sizeof(buffer),
+        UDD_DEFAULT_TIMEOUT
+    );
+
+    rc = usb_bulk_msg(
+        udev,
+        usb_sndbulkpipe(udev, EP1_OUT_ADDR),
+        (void *)jpeg_data,
+        data_size,
+        &actual_length,
+        UDD_DEFAULT_TIMEOUT
+    );
+
+    return 0;
+}
 
 static int udd_probe(struct usb_interface *intf,
                     const struct usb_device_id *id)
@@ -17,11 +60,7 @@ static int udd_probe(struct usb_interface *intf,
     struct usb_device *udev = interface_to_usbdev(intf);
     struct usb_endpoint_descriptor *endpoint_desc;
     struct usb_host_interface *interface;
-    void *transfer_buffer;
-    dma_addr_t phy_addr;
-    unsigned int pipe;
-    struct urb *urb;
-    int rc;
+    u8 *jpeg_data;
 
     printk("%s\n", __func__);
 
@@ -38,15 +77,17 @@ static int udd_probe(struct usb_interface *intf,
     printk("wMaxPacketSize : 0x%04x", endpoint_desc->wMaxPacketSize);
     printk("bInterval : 0x%02x\n", endpoint_desc->bInterval);
 
-    // pipe = usb_rcvintpipe(udev, endpoint_desc->bEndpointAddress);
+    // Load jpeg data into memory
+    jpeg_data = (u8 *)kmalloc(32 * 1024, GFP_KERNEL);
+    if (!jpeg_data)
+        return -ENOMEM;
+
+    memcpy(jpeg_data, &panda, sizeof(panda));
+    udd_flush(udev, jpeg_data, sizeof(panda));
+
+    kfree(jpeg_data);
 
     return 0;
-
-    // transfer_buffer = usb_alloc_coherent(udev, 4, GFP_KERNEL, &phy_addr);
-    // urb = usb_alloc_urb(0, GFP_KERNEL);
-
-    // usb_fill_control_urb(urb, udev, )
-    // return 0;
 }
 static void udd_disconnect(struct usb_interface *intf)
 {
