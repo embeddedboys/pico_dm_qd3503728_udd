@@ -9,6 +9,7 @@
 
 // A jpeg image of a panda, binary data
 #include "panda.h"
+#include "output.h"
 
 #define DRV_NAME "udd"
 #define UDD_DEFAULT_TIMEOUT 1000
@@ -84,6 +85,9 @@ static int udd_probe(struct usb_interface *intf,
 
     memcpy(jpeg_data, &panda, sizeof(panda));
     udd_flush(udev, jpeg_data, sizeof(panda));
+
+    memcpy(jpeg_data, &output, sizeof(output));
+    udd_flush(udev, jpeg_data, sizeof(output));
 
     kfree(jpeg_data);
 
