@@ -9,7 +9,9 @@
 
 // A jpeg image of a panda, binary data
 #include "panda.h"
-#include "output.h"
+
+#include "jpeg.h"
+#include "rgb565.h"
 
 #define DRV_NAME "udd"
 #define UDD_DEFAULT_TIMEOUT 1000
@@ -61,7 +63,8 @@ static int udd_probe(struct usb_interface *intf,
     struct usb_device *udev = interface_to_usbdev(intf);
     struct usb_endpoint_descriptor *endpoint_desc;
     struct usb_host_interface *interface;
-    u8 *jpeg_data;
+    size_t actual_length;
+    u8 *jpeg_data, *encoder_data;
 
     printk("%s\n", __func__);
 
@@ -83,12 +86,15 @@ static int udd_probe(struct usb_interface *intf,
     if (!jpeg_data)
         return -ENOMEM;
 
+    /* TODO: replace these with a booting up image */
     memcpy(jpeg_data, &panda, sizeof(panda));
     udd_flush(udev, jpeg_data, sizeof(panda));
 
-    memcpy(jpeg_data, &output, sizeof(output));
-    udd_flush(udev, jpeg_data, sizeof(output));
+    encoder_data = encode_bmp(rgb565, ARRAY_SIZE(rgb565), &actual_length);
+    memcpy(jpeg_data, encoder_data, actual_length);
+    udd_flush(udev, jpeg_data, actual_length);
 
+    kfree(encoder_data);
     kfree(jpeg_data);
 
     return 0;
