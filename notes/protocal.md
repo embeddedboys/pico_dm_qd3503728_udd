@@ -1,4 +1,4 @@
-# USB Device Protocol
+# UDD Protocol
 
 ## Command Table
 
