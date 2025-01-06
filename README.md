@@ -36,7 +36,7 @@ ninja
 cp src/rp2040-freertos-template.uf2 /media/$USER/RP2350
 
 # CMSIS-DAP
-openocd -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c "adapter speed 25000" -c "program src/rp2040-freertos-template.elf verify reset; shutdown;"
+openocd -f interface/cmsis-dap.cfg -f target/rp2350.cfg -c "adapter speed 25000" -c "program src/rp2040-freertos-template.elf verify reset; shutdown;"
 ```
 
 烧录完成后，屏幕将显示一幅默认画面
@@ -72,7 +72,7 @@ sudo ./scripts/jpg_viewer.py ~/Pictures/pico_dm_yt350s006.jpg
 sudo ./scripts/mp4_player.py ~/Downloads/行走的高原大米饭，鼠兔.mp4
 ```
 
-> 由于Pico性能原因，建议您将视频帧率降低至 15 FPS以获得更流畅的效果
+> 受限于Pico性能，建议您将视频帧率降低至 15 FPS以获得更流畅的效果
 
 ### Linux 驱动
 
