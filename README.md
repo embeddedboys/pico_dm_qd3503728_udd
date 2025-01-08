@@ -1,9 +1,12 @@
 # Pico DM QD3503728 UDD
 
+> [!WARNING]
+> 本工程正处于早期开发阶段
+
 Pico **UDD(USB Display Device)** 这个项目将树莓派Pico模拟成一个USB显示屏，配合主机端的驱动或软件，来为主机提供显示拓展的功能。 开发本项目的初衷是为一些 linux 板卡提供简单的显示触摸支持。
 
-你可以在`scripts`目录下找到可用的python脚本示例。
-linux驱动目前还在开发中，位于`host/linux`下
+你可以在`scripts`目录下找到可用的python脚本示例，
+linux驱动目前还在开发中，位于`host/linux`下，参见[主机端软件和驱动](#主机端软件和驱动)。
 
 ## 待办项
 
