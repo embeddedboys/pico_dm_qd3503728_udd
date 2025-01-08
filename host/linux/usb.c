@@ -10,7 +10,7 @@
 // A jpeg image of a panda, binary data
 #include "panda.h"
 
-#include "jpeg.h"
+#include "encoder.h"
 #include "rgb565.h"
 
 #define DRV_NAME "udd"
@@ -30,8 +30,17 @@
 
 static int udd_flush(struct usb_device *udev, const u8 jpeg_data[], size_t data_size)
 {
-    u8 buffer[] = {0x51, data_size & 0xff, data_size >> 8, 0x00};
+    u8 control_buffer[4];
     int rc, actual_length;
+
+    /* data_size must be even for RP2350 */
+    if (data_size % 2)
+        data_size += 1;
+
+    control_buffer[0] = 0x51;
+    control_buffer[1] = data_size & 0xff;
+    control_buffer[2] = data_size >> 8;
+    control_buffer[3] = 0x00;
 
     // request setup
     rc = usb_control_msg(
@@ -40,8 +49,8 @@ static int udd_flush(struct usb_device *udev, const u8 jpeg_data[], size_t data_
         REQ_EP1_OUT,
         TYPE_VENDOR | USB_DIR_OUT,
         0, 0,
-        buffer,
-        sizeof(buffer),
+        control_buffer,
+        sizeof(control_buffer),
         UDD_DEFAULT_TIMEOUT
     );
 
@@ -64,37 +73,35 @@ static int udd_probe(struct usb_interface *intf,
     struct usb_endpoint_descriptor *endpoint_desc;
     struct usb_host_interface *interface;
     size_t actual_length;
-    u8 *jpeg_data, *encoder_data;
+    u8 *usb_buffer, *jpeg_data;
 
-    printk("%s\n", __func__);
+    printk("\n\n%s\n", __func__);
 
     interface = intf->cur_altsetting;
-
-    printk("num of eps : %d\n", interface->desc.bNumEndpoints);
-
     endpoint_desc = &interface->endpoint[0].desc;
+    // printk("num of eps : %d\n", interface->desc.bNumEndpoints);
 
-    printk("bLength : 0x%02x", endpoint_desc->bLength);
-    printk("bDescriptorType : 0x%02x", endpoint_desc->bDescriptorType);
-    printk("bEndpointAddress : 0x%02x\n", endpoint_desc->bEndpointAddress);
-    printk("bmAttributes : 0x%02x", endpoint_desc->bmAttributes);
-    printk("wMaxPacketSize : 0x%04x", endpoint_desc->wMaxPacketSize);
-    printk("bInterval : 0x%02x\n", endpoint_desc->bInterval);
+    // printk("bLength : 0x%02x", endpoint_desc->bLength);
+    // printk("bDescriptorType : 0x%02x", endpoint_desc->bDescriptorType);
+    // printk("bEndpointAddress : 0x%02x\n", endpoint_desc->bEndpointAddress);
+    // printk("bmAttributes : 0x%02x", endpoint_desc->bmAttributes);
+    // printk("wMaxPacketSize : 0x%04x", endpoint_desc->wMaxPacketSize);
+    // printk("bInterval : 0x%02x\n", endpoint_desc->bInterval);
 
     // Load jpeg data into memory
-    jpeg_data = (u8 *)kmalloc(32 * 1024, GFP_KERNEL);
-    if (!jpeg_data)
+    usb_buffer = (u8 *)kmalloc(32 * 1024, GFP_KERNEL);
+    if (!usb_buffer)
         return -ENOMEM;
 
     /* TODO: replace these with a booting up image */
-    memcpy(jpeg_data, &panda, sizeof(panda));
-    udd_flush(udev, jpeg_data, sizeof(panda));
+    memcpy(usb_buffer, &panda, sizeof(panda));
+    udd_flush(udev, usb_buffer, sizeof(panda));
 
-    encoder_data = encode_bmp(rgb565, ARRAY_SIZE(rgb565), &actual_length);
-    memcpy(jpeg_data, encoder_data, actual_length);
-    udd_flush(udev, jpeg_data, actual_length);
+    jpeg_data = jpeg_encode_bmp(rgb565, ARRAY_SIZE(rgb565), &actual_length);
+    memcpy(usb_buffer, jpeg_data, actual_length);
+    udd_flush(udev, usb_buffer, actual_length);
 
-    kfree(encoder_data);
+    kfree(usb_buffer);
     kfree(jpeg_data);
 
     return 0;
