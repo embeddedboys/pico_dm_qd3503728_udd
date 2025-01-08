@@ -15,6 +15,7 @@
 #include <linux/fb.h>
 
 #include "udd.h"
+#include "encoder.h"
 
 struct dirty_area {
     u32 x1;
@@ -115,12 +116,18 @@ static int udd_fb_blank(int blank, struct fb_info *info)
 
 static void udd_fb_deferred_io(struct fb_info *info, struct list_head *pagereflist)
 {
-    struct fb_deferred_io_pageref *pageref;
-    struct dirty_area area = {0};
-    uint y_cur, y_end;
+    ssize_t jpeg_length = 0;
+    // struct fb_deferred_io_pageref *pageref;
+    // struct dirty_area area = {0};
+    // uint y_cur, y_end;
+    struct udd *udd;
+    u8 *jpeg_data;
 
+    udd = info->par;
+
+// TODO: support partial update
+#ifdef SUPPORT_PARTIAL_UPDATE
     area.y1 = info->var.yres - 1;
-
     list_for_each_entry(pageref, pagereflist, list) {
         y_cur = pageref->offset / info->fix.line_length;
         y_end = (pageref->offset + PAGE_SIZE) / info->fix.line_length;
@@ -137,6 +144,19 @@ static void udd_fb_deferred_io(struct fb_info *info, struct list_head *pagerefli
         area.x2 = info->var.xres - 1;
 
     pr_info("%s, dirty area: (%d, %d, %d, %d)\n", __func__, area.x1, area.y1, area.x2, area.y2);
+#endif
+
+
+    jpeg_data = jpeg_encode_rgb565(info->screen_buffer,
+                                info->fix.line_length * info->var.yres, &jpeg_length);
+
+    if (jpeg_length > USB_TRANS_MAX_SIZE)
+        goto skip_frame;
+
+    udd_flush(udd->udev, jpeg_data, jpeg_length);
+
+skip_frame:
+    kfree(jpeg_data);
 }
 
 struct fb_info *udd_framebuffer_alloc(struct udd_display *display,

@@ -30,7 +30,7 @@ uint8_t *jpeg_encode_bmp(uint8_t *bmp, size_t len, size_t *out_size)
     offset = *(int32_t *)&bmp[10];
     bytewidth = (w * bits) >> 3;
     pitch = (bytewidth + 3) & 0xfffc;
-    printk("%s, w : %d, h : %d, pitch : %d\n", __func__, w, h, pitch);
+    // printk("%s, w : %d, h : %d, pitch : %d\n", __func__, w, h, pitch);
 
     buffer_size = len;
     buffer = (uint8_t *)kmalloc(buffer_size, GFP_KERNEL);
@@ -62,10 +62,47 @@ uint8_t *jpeg_encode_bmp(uint8_t *bmp, size_t len, size_t *out_size)
         JPEGAddFrame(&jpeg, &jpe, bmp_tmp, pitch);
 
     JPEGEncodeEnd(&jpeg);
-    printk("%s, jpeg size : %d\n", __func__, jpeg.iDataSize);
+    // printk("%s, jpeg size : %d\n", __func__, jpeg.iDataSize);
     *out_size = jpeg.iDataSize;
 
     kfree(bmp_tmp);
 
     return buffer;
 }
+
+uint8_t *jpeg_encode_rgb565(uint8_t *rgb565, size_t len, size_t *out_size)
+{
+    int rc, w, h, bits;
+    int pitch, bytewidth;
+    uint8_t *buffer;
+    size_t buffer_size;
+    JPEGE_IMAGE jpeg;
+    JPEGENCODE jpe;
+
+    w = 480;
+    h = 320;
+    bits = 16;
+
+    bytewidth = (w * bits) >> 3;
+    pitch = (bytewidth + 3) & 0xfffc;
+    // printk("%s, w : %d, h : %d, pitch : %d\n", __func__, w, h, pitch);
+
+    buffer_size = len;
+    buffer = (uint8_t *)kmalloc(buffer_size, GFP_KERNEL);
+
+    memset(&jpeg, 0, sizeof(JPEGE_IMAGE));
+    jpeg.pOutput = buffer;
+    jpeg.iBufferSize = buffer_size;
+    jpeg.pHighWater = &jpeg.pOutput[jpeg.iBufferSize - 512];
+
+    rc = JPEGEncodeBegin(&jpeg, &jpe, w, h, JPEGE_PIXEL_RGB565, JPEGE_SUBSAMPLE_420, JPEGE_Q_HIGH);
+    if (rc == JPEGE_SUCCESS)
+        JPEGAddFrame(&jpeg, &jpe, rgb565, pitch);
+
+    JPEGEncodeEnd(&jpeg);
+    // printk("%s, jpeg size : %d\n", __func__, jpeg.iDataSize);
+    *out_size = jpeg.iDataSize;
+
+    return buffer;
+}
+

@@ -31,7 +31,7 @@
 #define REQ_EP1_OUT  0X02
 #define REQ_EP2_IN   0X03
 
-static ssize_t udd_flush(struct usb_device *udev, const u8 jpeg_data[], size_t data_size)
+ssize_t udd_flush(struct usb_device *udev, const u8 jpeg_data[], size_t data_size)
 {
     u8 control_buffer[4];
     int rc, actual_length;
@@ -92,7 +92,7 @@ struct udd_display default_display = {
     .yres   = 320,
     .bpp    = 16,
     .rotate = 0,
-    .fps    = 15,
+    .fps    = 24,
 };
 
 static int udd_probe(struct usb_interface *intf,
