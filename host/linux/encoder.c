@@ -1,5 +1,6 @@
 #include <linux/slab.h>
 
+#include "encoder.h"
 #include "jpegenc.h"
 uint8_t *jpeg_encode_bmp(uint8_t *bmp, size_t len, size_t *out_size)
 {

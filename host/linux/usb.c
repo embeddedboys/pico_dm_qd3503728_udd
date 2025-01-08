@@ -2,10 +2,13 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/slab.h>
+#include <linux/fb.h>
 #include <linux/usb.h>
 #include <linux/usb/input.h>
 #include <linux/hid.h>
 #include <linux/input.h>
+
+#include "udd.h"
 
 // A jpeg image of a panda, binary data
 #include "panda.h"
@@ -28,7 +31,7 @@
 #define REQ_EP1_OUT  0X02
 #define REQ_EP2_IN   0X03
 
-static int udd_flush(struct usb_device *udev, const u8 jpeg_data[], size_t data_size)
+static ssize_t udd_flush(struct usb_device *udev, const u8 jpeg_data[], size_t data_size)
 {
     u8 control_buffer[4];
     int rc, actual_length;
@@ -63,22 +66,50 @@ static int udd_flush(struct usb_device *udev, const u8 jpeg_data[], size_t data_
         UDD_DEFAULT_TIMEOUT
     );
 
+    return actual_length;
+}
+
+static int udd_bmp_blit(struct usb_device *udev, uint8_t *bmp, size_t len)
+{
+    u8 *jpeg_data;
+    ssize_t jpeg_length = 0, actual_length = 0;
+
+    jpeg_data = jpeg_encode_bmp(bmp, len, &jpeg_length);
+    actual_length = udd_flush(udev, jpeg_data, jpeg_length);
+
+    kfree(jpeg_data);
+
+    if (actual_length != jpeg_length) {
+        dev_warn(&udev->dev, "Failed to blit bmp data");
+        return -1;
+    }
+
     return 0;
 }
+
+struct udd_display default_display = {
+    .xres   = 480,
+    .yres   = 320,
+    .bpp    = 16,
+    .rotate = 0,
+    .fps    = 15,
+};
 
 static int udd_probe(struct usb_interface *intf,
                     const struct usb_device_id *id)
 {
     struct usb_device *udev = interface_to_usbdev(intf);
-    struct usb_endpoint_descriptor *endpoint_desc;
-    struct usb_host_interface *interface;
-    size_t actual_length;
-    u8 *usb_buffer, *jpeg_data;
+    struct device *dev = &intf->dev;
+    // struct usb_endpoint_descriptor *endpoint_desc;
+    // struct usb_host_interface *interface;
+    struct fb_info *info;
+    struct udd *udd;
+    int rc;
 
     printk("\n\n%s\n", __func__);
 
-    interface = intf->cur_altsetting;
-    endpoint_desc = &interface->endpoint[0].desc;
+    // interface = intf->cur_altsetting;
+    // endpoint_desc = &interface->endpoint[0].desc;
     // printk("num of eps : %d\n", interface->desc.bNumEndpoints);
 
     // printk("bLength : 0x%02x", endpoint_desc->bLength);
@@ -88,27 +119,36 @@ static int udd_probe(struct usb_interface *intf,
     // printk("wMaxPacketSize : 0x%04x", endpoint_desc->wMaxPacketSize);
     // printk("bInterval : 0x%02x\n", endpoint_desc->bInterval);
 
-    // Load jpeg data into memory
-    usb_buffer = (u8 *)kmalloc(32 * 1024, GFP_KERNEL);
-    if (!usb_buffer)
+    info = udd_framebuffer_alloc(&default_display, dev);
+    if (!info)
         return -ENOMEM;
 
-    /* TODO: replace these with a booting up image */
-    memcpy(usb_buffer, &panda, sizeof(panda));
-    udd_flush(udev, usb_buffer, sizeof(panda));
+    udd = info->par;
+    udd->udev = udev;
+    udd->dev = dev;
+    udd->info = info;
 
-    jpeg_data = jpeg_encode_bmp(rgb565, ARRAY_SIZE(rgb565), &actual_length);
-    memcpy(usb_buffer, jpeg_data, actual_length);
-    udd_flush(udev, usb_buffer, actual_length);
+    dev_set_drvdata(dev, udd);
 
-    kfree(usb_buffer);
-    kfree(jpeg_data);
+    udd_bmp_blit(udev, rgb565, ARRAY_SIZE(rgb565));
+
+    rc = udd_register_framebuffer(info);
+    if (rc) {
+        dev_err(udd->dev, "failed to register framebuffer");
+        return rc;
+    }
+
+    pr_info("%d KB video memory\n", info->fix.smem_len >> 10);
 
     return 0;
 }
 static void udd_disconnect(struct usb_interface *intf)
 {
+    struct udd *udd = dev_get_drvdata(&intf->dev);
     printk("%s\n", __func__);
+
+    udd_unregister_framebuffer(udd->info);
+    udd_framebuffer_release(udd->info);
 }
 
 static struct usb_device_id udd_ids[] = {

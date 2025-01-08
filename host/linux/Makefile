@@ -18,4 +18,4 @@ test: all
 	sudo insmod $(MODULE_NAME).ko || true
 
 obj-m += $(MODULE_NAME).o
-$(MODULE_NAME)-y += usb.o jpegenc.o encoder.o
+$(MODULE_NAME)-y += usb.o jpegenc.o encoder.o fb.o
