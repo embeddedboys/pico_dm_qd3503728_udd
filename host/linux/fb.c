@@ -12,6 +12,7 @@
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
+#include <linux/version.h>
 #include <linux/fb.h>
 
 #include "udd.h"
@@ -215,7 +216,11 @@ struct fb_info *udd_framebuffer_alloc(struct udd_display *display,
     fbops->fb_imageblit = udd_fb_imageblit;
     fbops->fb_setcolreg = udd_fb_setcolreg;
     fbops->fb_blank     = udd_fb_blank;
+
+// TODO: Find out which version requires mmap to be implemented.
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
     fbops->fb_mmap      = fb_deferred_io_mmap;
+#endif
 
     snprintf(info->fix.id, sizeof(info->fix.id), "%s", DRV_NAME);
     info->fix.type        = FB_TYPE_PACKED_PIXELS;
