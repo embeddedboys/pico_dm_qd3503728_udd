@@ -215,6 +215,7 @@ struct fb_info *udd_framebuffer_alloc(struct udd_display *display,
     fbops->fb_imageblit = udd_fb_imageblit;
     fbops->fb_setcolreg = udd_fb_setcolreg;
     fbops->fb_blank     = udd_fb_blank;
+    fbops->fb_mmap      = fb_deferred_io_mmap;
 
     snprintf(info->fix.id, sizeof(info->fix.id), "%s", DRV_NAME);
     info->fix.type        = FB_TYPE_PACKED_PIXELS;
@@ -244,7 +245,7 @@ struct fb_info *udd_framebuffer_alloc(struct udd_display *display,
     info->var.transp.offset = 0;
     info->var.transp.length = 0;
 
-    info->flags = FBINFO_FLAG_DEFAULT | FBINFO_VIRTFB;
+    info->flags = FBINFO_VIRTFB;
 
     fbdefio->delay = HZ / display->fps;
     fbdefio->sort_pagereflist = true;

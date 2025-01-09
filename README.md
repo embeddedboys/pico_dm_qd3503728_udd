@@ -117,6 +117,11 @@ make test
 [11431.847856] usbcore: registered new interface driver udd
 ```
 
+将当前用户添加进 `video` 组，您可能需要注销或者重启系统才能生效。
+```bash
+sudo usermod -a -G video $LOGNAME
+```
+
 #### fbterm 测试
 
 你可能需要先安装fbterm
