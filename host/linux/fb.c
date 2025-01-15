@@ -57,7 +57,7 @@ static void udd_fb_copyarea(struct fb_info *info, const struct fb_copyarea *area
 static void udd_fb_imageblit(struct fb_info *info, const struct fb_image *image)
 {
     pr_info("%s\n", __func__);
-    sys_imageblit(info, image);
+    //sys_imageblit(info, image);
 }
 
 /* from pxafb.c */
@@ -77,6 +77,8 @@ static int udd_fb_setcolreg(unsigned int regno, unsigned int red,
 
     pr_info("%s(regno=%u, red=0x%X, green=0x%X, blue=0x%X, trans=0x%X)\n",
            __func__, regno, red, green, blue, transp);
+
+    return 0;
 
     if (regno >= 256)   /* no. of hw registers */
         return 1;
@@ -218,7 +220,7 @@ struct fb_info *udd_framebuffer_alloc(struct udd_display *display,
     fbops->fb_blank     = udd_fb_blank;
 
 // TODO: Find out which version requires mmap to be implemented.
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0)
     fbops->fb_mmap      = fb_deferred_io_mmap;
 #endif
 
