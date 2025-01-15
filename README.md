@@ -153,6 +153,34 @@ ninja
 LV_LINUX_FBDEV_DEVICE=/dev/fb1 ../bin/lvglsim
 ```
 
+#### 树莓派 Xorg server
+
+1. 将显示服务器切换到 Xorg，并重启
+
+```bash
+sudo raspi-config
+```
+
+找到 `6 Advanced Options`, 回车进入，再找到 `A6 Wayland`，回车进入后方向键上下选择 `W1 X11`，
+然后按回车，出现弹窗提示已激活后，按回车返回主菜单， 最后，按 `TAB` 键切换到 `Finish` 选项，会
+出现弹窗提示`Would you like to reboot now?`，默认选项`Yes`，回车重启系统。
+
+2. 将 `99-fbdev.conf` 拷贝至 `/usr/share/X11/xorg.conf.d/` 下
+```bash
+cd host/linux
+sudo cp 99-fbdev.conf /usr/share/X11/xorg.conf.d/
+```
+
+3. 加载 `udd` 驱动
+```bash
+make
+sudo insmod udd
+```
+
+4. 等待 Xorg 显示初始化完成，屏幕显示出树莓派桌面，如下图所示：
+
+![udd-rpi](./assets/udd_rpi.jpg)
+
 #### 卸载驱动
 
 在执行其他python脚本前，您应当先卸载此驱动程序
