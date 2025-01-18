@@ -1,3 +1,11 @@
+// SPDX-License-Identifier: GPL-2.0-only
+/*
+ *
+ * Copyright (C) 2025 embeddedboys, Ltd.
+ *
+ * Author: Zheng Hua <hua.zheng@embeddedboys.com>
+ */
+
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -95,7 +103,7 @@ struct udd_display default_display = {
     .fps    = 24,
 };
 
-static int udd_probe(struct usb_interface *intf,
+static int __maybe_unused udd_fb_steup(struct usb_interface *intf,
                     const struct usb_device_id *id)
 {
     struct usb_device *udev = interface_to_usbdev(intf);
@@ -142,13 +150,77 @@ static int udd_probe(struct usb_interface *intf,
 
     return 0;
 }
-static void udd_disconnect(struct usb_interface *intf)
+
+static void __maybe_unused udd_fb_cleanup(struct usb_interface *intf)
 {
     struct udd *udd = dev_get_drvdata(&intf->dev);
     printk("%s\n", __func__);
 
     udd_unregister_framebuffer(udd->info);
     udd_framebuffer_release(udd->info);
+}
+
+static int __maybe_unused udd_drm_setup(struct usb_interface *intf,
+                    const struct usb_device_id *id)
+{
+    struct usb_device *udev = interface_to_usbdev(intf);
+    struct device *dev = &intf->dev;
+    // struct usb_endpoint_descriptor *endpoint_desc;
+    // struct usb_host_interface *interface;
+    struct drm_device *drm;
+    struct udd *udd;
+    int rc;
+
+    printk("\n\n%s\n", __func__);
+
+    drm = udd_drm_alloc(dev);
+    if (!drm)
+        return -ENOMEM;
+
+    udd = container_of(drm, struct udd, drm);
+    udd->udev = udev;
+    udd->dev = dev;
+
+    dev_set_drvdata(dev, udd);
+    udd_bmp_blit(udev, rgb565, ARRAY_SIZE(rgb565));
+
+    rc = udd_drm_register(drm);
+    if (rc)
+        goto err_free_drm;
+
+    return 0;
+err_free_drm:
+    udd_drm_release(drm);
+    return -1;
+}
+
+static void __maybe_unused udd_drm_cleanup(struct usb_interface *intf)
+{
+    struct udd *udd = dev_get_drvdata(&intf->dev);
+    struct drm_device *drm = &udd->drm;
+
+    pr_info("%s\n", __func__);
+    udd_drm_unregister(drm);
+}
+
+static int udd_probe(struct usb_interface *intf,
+                    const struct usb_device_id *id)
+{
+#if UDD_DEF_DISP_BACKEND == UDD_DISP_BACKEND_FBDEV
+    udd_fb_steup(intf, id);
+#else
+    udd_drm_setup(intf, id);
+#endif
+    return 0;
+}
+
+static void udd_disconnect(struct usb_interface *intf)
+{
+#if UDD_DEF_DISP_BACKEND == UDD_DISP_BACKEND_FBDEV
+    udd_fb_cleanup(intf);
+#else
+    udd_drm_cleanup(intf);
+#endif
 }
 
 static struct usb_device_id udd_ids[] = {
@@ -165,6 +237,6 @@ static struct usb_driver udd_drv = {
 };
 module_usb_driver(udd_drv);
 
-MODULE_AUTHOR("Hua Zheng <writeforever@foxmail.com>");
+MODULE_AUTHOR("Zheng Hua <hua.zheng@embeddedboys.com>");
 MODULE_DESCRIPTION("USB display device driver");
 MODULE_LICENSE("GPL");

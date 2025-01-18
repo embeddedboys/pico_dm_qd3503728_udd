@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2025 embeddedboys, Ltd.
  *
- * Author: Hua Zheng <hua.zheng@embeddedboys.com>
+ * Author: Zheng Hua <hua.zheng@embeddedboys.com>
  */
 
 #define DRV_NAME "udd-fb"
@@ -154,11 +154,12 @@ static void udd_fb_deferred_io(struct fb_info *info, struct list_head *pagerefli
                                 info->fix.line_length * info->var.yres, &jpeg_length);
 
     if (jpeg_length > USB_TRANS_MAX_SIZE)
-        goto skip_frame;
+        // goto skip_frame;
+        jpeg_length = USB_TRANS_MAX_SIZE - 1;
 
     udd_flush(udd->udev, jpeg_data, jpeg_length);
 
-skip_frame:
+// skip_frame:
     kfree(jpeg_data);
 }
 
