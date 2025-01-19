@@ -18,6 +18,7 @@
 #include <drm/drm_fbdev_generic.h>
 #include <drm/drm_probe_helper.h>
 
+#include <drm/drm_format_helper.h>
 #include <drm/drm_atomic_helper.h>
 #include <drm/drm_damage_helper.h>
 #include <drm/drm_gem_dma_helper.h>
@@ -30,7 +31,7 @@
 #define UDD_DISP_BACKEND_DRM   1
 
 #ifndef UDD_DEF_DISP_BACKEND
-    #define UDD_DEF_DISP_BACKEND UDD_DISP_BACKEND_FBDEV
+    #define UDD_DEF_DISP_BACKEND UDD_DISP_BACKEND_DRM
 #endif
 
 // TODO: Currently only support less than 40000 bytes transfer
