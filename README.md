@@ -31,6 +31,11 @@ linux驱动目前还在开发中，位于`host/linux`下，参见[主机端软�
 
 ## 构建并烧录设备端固件
 
+> [!WARNING]
+> Use at own risk!
+> 为了更好的体验效果，本工程默认对Pico、Pico2核心板进行了超频。
+> 如果您发现核心板无法正常工作，请尝试降低或关闭超频设置，方式详见官网文档中编译及配置章节。
+
 ### Raspberry Pi Pico (RP2040)
 ```bash
 mkdir build && cd build
