@@ -13,13 +13,14 @@ linux驱动目前还在开发中，位于`host/linux`下，参见[主机端软�
 - [ ] 设备端双核工作
 - [ ] 更好的编解码过程
 - [ ] linux 驱动输入支持
-- [ ] linux DRM 驱动
+- [x] linux DRM 驱动
 
 ## 特性
 
 - 开箱即用
 - 兼容 Pico 和 Pico2 核心板
 - 平均 15 FPS 的刷新速率
+- DRM 支持
 - 开源驱动
 
 ## 构建并烧录设备端固件
@@ -90,20 +91,102 @@ sudo ./scripts/jpg_viewer.py ~/Pictures/pico_dm_yt350s006.jpg
 sudo ./scripts/mp4_player.py ~/Downloads/行走的高原大米饭，鼠兔.mp4
 ```
 
-> 受限于设备性能，建议您将视频帧率降低至 15 FPS 以获得更流畅的效果
+> 受限于设备性能，建议您将视频帧率降低至 `15 FPS` 以获得更流畅的效果
 
-### Linux 驱动
+### Linux DRM 驱动
 
-当前的 linux 驱动是基于 fbdev 实现的，对于上层软件的支持性没有 DRM 好，我们后续会更换为 DRM 的版本。
+DRM 驱动接口随着内核版本的更新而不断变化，所以本仓库中的驱动仅以测试环境中的配置为准。
+后期考虑将linux驱动单独拿出来另开一个仓库，针对一些主流发行版的LTS版本按分支进行适配。
 
-我的测试设备运行的操作系统是 Linux mint 21.3，基于ubuntu jammy，内核版本为 5.15.0-130-generic
+| 测试环境 | |
+| --- | --- |
+| OS | Ubuntu 24.04.1 LTS |
+| 设备 | X86 PC |
+| 内核版本 | 6.8 |
 
-#### 安装驱动
+DRM 驱动测试通过的发行版（桌面环境）：
+
+- Ubuntu 24.04.1 LTS (Gnome)
+- xubuntu 24.04 (xfce4)
+- lubuntu 24.04 (LXQT)
+
+未通过的：
+
+- Linux mint 22.1 (Cinnamon)
+- Manjaro 24.2.1 (KDE)
+
+> [!WARNING]
+> 测试通过的标准是：连接设备并加载驱动后，系统是否能够检测到新的显示器且副屏可以正常显示内容
+
+你可能需要先安装这些软件包：
+```bash
+sudo apt install git make gcc -y
+```
 
 将设备连接至PC后，编译并安装驱动
 ```bash
 cd host/linux
-make test
+make clean
+make
+sudo insmod udd.ko
+```
+
+如果一切正常，可通过`dmesg`命令查看到内核打印的如下日志：
+```bash
+[ 2027.415329]
+
+               udd_drm_setup
+[ 2027.415332] udd-drm: udd_drm_alloc
+[ 2027.415378] udd-drm: udd_drm_dev_init
+[ 2027.415379] udd-drm: udd_drm_dev_init_with_formats
+[ 2027.415477] udd-drm: mode: 480x320
+[ 2027.432216] udd-drm: udd_drm_register
+[ 2027.432718] [drm] Initialized udd-drm 1.0.0 for 1-4:1.0 on minor 0
+[ 2027.432757] udd-drm: udd_drm_pipe_mode_valid, rc: 0
+[ 2027.432996] fbcon: Deferring console take-over
+[ 2027.433001] udd 1-4:1.0: [drm] fb1: udd-drmdrmfb frame buffer device
+[ 2027.433063] usbcore: registered new interface driver udd
+```
+
+此时，系统应该识别到了一个新的显示器，看起来应该是这样：
+![desktop](./assets/IMG_0496_480x360.jpg)
+
+新显示器的默认位置通常位于您当前屏幕的右上侧，现在可以尝试将窗口拖动到显示模组上。
+![desktop](./assets/IMG_0495_480x360.jpg)
+
+DRM 驱动支持显示器热插拔功能。 您可通过在副屏运行的过程中复位Pico核心板，或者重新插拔USB线来测试热插拔功能。
+
+### Linux fbdev 驱动
+
+| 测试环境 | |
+| --- | --- |
+| OS | Ubuntu 24.04.1 LTS |
+| 设备 | X86 PC |
+| 内核版本 | 6.8 |
+
+#### 编译、安装驱动
+
+修改显示后端为 FBDEV
+```diff
+diff --git a/host/linux/udd.h b/host/linux/udd.h
+index 76327b9..7924407 100644
+--- a/host/linux/udd.h
++++ b/host/linux/udd.h
+@@ -31,7 +31,7 @@
+ #define UDD_DISP_BACKEND_DRM   1
+
+ #ifndef UDD_DEF_DISP_BACKEND
+-    #define UDD_DEF_DISP_BACKEND UDD_DISP_BACKEND_DRM
++    #define UDD_DEF_DISP_BACKEND UDD_DISP_BACKEND_FBDEV
+ #endif
+```
+
+将设备连接至PC后，编译并安装驱动
+```bash
+cd host/linux
+make clean
+make
+sudo insmod udd.ko
 ```
 
 如果一切正常，可通过`dmesg`命令查看到内核打印的如下日志：
@@ -155,6 +238,12 @@ LV_LINUX_FBDEV_DEVICE=/dev/fb1 ../bin/lvglsim
 
 #### 树莓派 Xorg server
 
+| 测试环境 | |
+| --- | --- |
+| OS | Raspberry Pi OS Bookworm |
+| 设备 | Raspberry Pi 5 |
+| 内核版本 | 6.6.62 |
+
 1. 将显示服务器切换到 Xorg，并重启
 
 ```bash
@@ -171,13 +260,29 @@ cd host/linux
 sudo cp 99-fbdev.conf /usr/share/X11/xorg.conf.d/
 ```
 
-3. 加载 `udd` 驱动
-```bash
-make
-sudo insmod udd
+3. 修改显示后端为 FBDEV
+```diff
+diff --git a/host/linux/udd.h b/host/linux/udd.h
+index 76327b9..7924407 100644
+--- a/host/linux/udd.h
++++ b/host/linux/udd.h
+@@ -31,7 +31,7 @@
+ #define UDD_DISP_BACKEND_DRM   1
+
+ #ifndef UDD_DEF_DISP_BACKEND
+-    #define UDD_DEF_DISP_BACKEND UDD_DISP_BACKEND_DRM
++    #define UDD_DEF_DISP_BACKEND UDD_DISP_BACKEND_FBDEV
+ #endif
 ```
 
-4. 等待 Xorg 显示初始化完成，屏幕显示出树莓派桌面，如下图所示：
+4. 编译、加载 `udd` 驱动
+```bash
+make clean
+make PLATFORM=rpi
+sudo insmod udd.ko
+```
+
+5. 等待 Xorg 显示初始化完成，屏幕显示出树莓派桌面，如下图所示：
 
 ![udd-rpi](./assets/udd_rpi.jpg)
 
@@ -185,10 +290,11 @@ sudo insmod udd
 
 在执行其他python脚本前，您应当先卸载此驱动程序
 
-卸载驱动前，请先退出所有正在使用fbdev的应用，然后执行如下命令
+卸载驱动前，请先退出所有正在使用fbdev的应用，然后尝试执行如下命令
 ```bash
 sudo rmmod udd
 ```
+如果提示驱动正在使用中，说明驱动不支持动态卸载。
 
 ### Windows 驱动
 
