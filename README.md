@@ -237,6 +237,7 @@ FRAMEBUFFER=/dev/fb1 fbterm
 ```bash
 # 拉取代码
 git clone https://github.com/lvgl/lv_port_linux.git
+git submodule update --init
 
 # 编译
 cd lv_port_linux
