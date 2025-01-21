@@ -1,10 +1,10 @@
-# Host-side Drivers
+# UDD Host-side Drivers
 
 ## linux/
 
-A linux USB device driver with Framebuffer and Input device driver implenments.
+A linux USB device driver with DRM & Framebuffer and Input device driver implenments.
 
-### Build
+### Building
 ```
 cd linux
 make
@@ -16,7 +16,7 @@ make
 ```
 sudo cp udd.ko /lib/modules/`uname -r`/
 sudo depmod -a
-echo "udd" > /etc/modules-load.d/udd.conf
+sudo sh -c "echo 'udd' > /etc/modules-load.d/udd.conf"
 
 sudo modprobe udd
 ```
