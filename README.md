@@ -29,6 +29,14 @@ linux驱动目前还在开发中，位于`host/linux`下，参见[主机端软�
 - DRM 支持
 - 开源驱动
 
+## 拉取设备工程代码
+
+```bash
+git clone https://gitee.com/embeddedboys/pico_dm_qd3503728_udd
+cd pico_dm_qd3503728_udd
+git submodule update --init --recursive
+```
+
 ## 构建并烧录设备端固件
 
 > [!WARNING]
