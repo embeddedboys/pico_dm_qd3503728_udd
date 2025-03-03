@@ -47,3 +47,24 @@ add_custom_target(
     COMMENT "Print target size info"
     DEPENDS ${PROJECT_NAME}
 )
+
+# add a firmware flash target
+if(${PICO_BOARD} STREQUAL "pico" OR ${PICO_PLATFORM} STREQUAL "rp2040")
+        add_custom_target(
+            flash
+            COMMAND openocd -f interface/cmsis-dap.cfg -c "adapter speed 10000"
+                            -f target/rp2040.cfg -s tcl -c "program src/${CMAKE_PROJECT_NAME}.elf verify reset exit"
+            DEPENDS ${CMAKE_BINARY_DIR}/src/${CMAKE_PROJECT_NAME}.elf
+            COMMENT "Flashing firmware using CMSIS-DAP Debugger..."
+            DEPENDS ${PROJECT_NAME}
+        )
+elseif(${PICO_BOARD} STREQUAL  "pico2" OR ${PICO_PLATFORM} STREQUAL  "rp2350")
+        add_custom_target(
+            flash
+            COMMAND openocd -f interface/cmsis-dap.cfg -c "adapter speed 10000"
+                            -f target/rp2350.cfg -s tcl -c "program src/${CMAKE_PROJECT_NAME}.elf verify reset exit"
+            DEPENDS ${CMAKE_BINARY_DIR}/src/${CMAKE_PROJECT_NAME}.elf
+            COMMENT "Flashing firmware using CMSIS-DAP Debugger..."
+            DEPENDS ${PROJECT_NAME}
+        )
+endif()
