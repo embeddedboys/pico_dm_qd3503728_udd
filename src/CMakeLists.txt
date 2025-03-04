@@ -61,12 +61,16 @@ if(OVERCLOCK_ENABLED)
     elseif(${PICO_BOARD} STREQUAL "pico2" OR ${PICO_PLATFORM} STREQUAL "rp2350")
         # Overclocking profiles
         #      SYS_CLK  | FLASH_CLK | Voltage
-        #  1  | 366MHz  |  183MHz   |  1.20(V)
+        #  1  | 366MHz  |  122MHz   |  1.20(V)
+        #  2  | 384MHz  |  128MHz   |  1.20(V)
         set(OVERCLOCK_PROFILE 1)
 
         if(OVERCLOCK_PROFILE EQUAL 1)
             set(SYS_CLK_KHZ 366000)             # CPU clock speed
             set(PERI_CLK_KHZ ${SYS_CLK_KHZ})    # Peripheral clock speed
+        elseif(OVERCLOCK_PROFILE EQUAL 2)
+            set(SYS_CLK_KHZ 384000)
+            set(PERI_CLK_KHZ ${SYS_CLK_KHZ})
         else()
             message(FATAL_ERROR "Invalid overclocking profile")
         endif()
@@ -176,11 +180,7 @@ if(${PICO_BOARD} STREQUAL "pico" OR ${PICO_PLATFORM} STREQUAL "rp2040")
         set(PICO_FLASH_SPI_CLKDIV 2)
     endif()
 elseif(${PICO_BOARD} STREQUAL  "pico2" OR ${PICO_PLATFORM} STREQUAL  "rp2350")
-    if(${SYS_CLK_KHZ} GREATER 366000)
-        set(PICO_FLASH_SPI_CLKDIV 4)
-    else()
-        set(PICO_FLASH_SPI_CLKDIV 2)
-    endif()
+        set(PICO_FLASH_SPI_CLKDIV 3)
 endif()
 
 math(EXPR FLASH_CLK_KHZ "${SYS_CLK_KHZ} / ${PICO_FLASH_SPI_CLKDIV}")
