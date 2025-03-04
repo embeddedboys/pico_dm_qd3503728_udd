@@ -48,6 +48,19 @@ add_custom_target(
     DEPENDS ${PROJECT_NAME}
 )
 
+# FIXME: Temporary manual operation:
+# First, You need to add `set auto-load safe-path .` in your `~/.config/gdb/gdbinit`
+# Then you have to run `openocd -f interface/cmsis-dap.cfg -f target/rp2350.cfg` etc.
+# in another window to start the debugger. Finally, in the build directory, run
+# `gdb-multiarch ./src/rp2040-freertos-template.elf` to attach gdb to the debugger.
+add_custom_target(
+    copy-gdbinit ALL
+    COMMAND cp ${CMAKE_CURRENT_LIST_DIR}/.gdbinit ${CMAKE_BINARY_DIR}/
+    DEPENDS ${CMAKE_BINARY_DIR}/src/${CMAKE_PROJECT_NAME}.elf
+    COMMENT "Copy .gdbinit to build directory"
+    DEPENDS ${PROJECT_NAME}
+)
+
 # add a firmware flash target
 if(${PICO_BOARD} STREQUAL "pico" OR ${PICO_PLATFORM} STREQUAL "rp2040")
         add_custom_target(
