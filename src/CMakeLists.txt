@@ -127,6 +127,7 @@ target_compile_definitions(pio_i80 PUBLIC I80_BUS_WR_CLK_KHZ=${I80_BUS_WR_CLK_KH
 
 add_subdirectory(usb)
 add_subdirectory(tjpgd)
+add_subdirectory(tests)
 
 # user define common source files
 file(GLOB_RECURSE COMMON_SOURCES
