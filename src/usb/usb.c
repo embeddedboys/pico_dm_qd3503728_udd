@@ -138,7 +138,7 @@ static volatile uint8_t *get_dpram_buffer(struct usb_endpoint_configuration *ep)
 }
 
 static void setup_endpoint(struct usb_endpoint_configuration *ep) {
-    config_descriptor.wTotalLength += sizeof(ep->descriptor);
+    config_descriptor.wTotalLength += sizeof(*ep->descriptor);
     ep->bit = get_ep_bit(ep);
     ep->endpoint_control = get_endpoint_control(ep);
     ep->buffer_control = get_buffer_control(ep);
