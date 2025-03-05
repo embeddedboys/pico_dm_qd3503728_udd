@@ -340,6 +340,7 @@ sudo rmmod udd
 
 - [FreeRTOS-Kernel](https://github.com/FreeRTOS/FreeRTOS-Kernel)
 - [bitbank2/JPEGENC](https://github.com/bitbank2/JPEGENC)
+- [bitbank2/JPEGDEC](https://github.com/bitbank2/JPEGDEC)
 - [dgatf/usb_library_rp2040](https://github.com/dgatf/usb_library_rp2040)
 - [Bodmer/TJpg_Decoder](https://github.com/Bodmer/TJpg_Decoder)
 - [embeddedboys/pico_dm_qd3503728_freertos](https://github.com/embeddedboys/pico_dm_qd3503728_freertos)
