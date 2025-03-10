@@ -25,19 +25,6 @@
 #include "rgb565.h"
 
 #define DRV_NAME "udd"
-#define UDD_DEFAULT_TIMEOUT 1000
-
-#define EP0_IN_ADDR  (USB_DIR_IN  | 0)
-#define EP0_OUT_ADDR (USB_DIR_OUT | 0)
-#define EP1_OUT_ADDR (USB_DIR_OUT | 1)
-#define EP2_IN_ADDR  (USB_DIR_IN  | 2)
-
-#define TYPE_VENDOR 0x40
-
-#define REQ_EP0_OUT  0X00
-#define REQ_EP0_IN   0X01
-#define REQ_EP1_OUT  0X02
-#define REQ_EP2_IN   0X03
 
 ssize_t udd_flush(struct usb_device *udev, const u8 jpeg_data[], size_t data_size)
 {
@@ -211,6 +198,11 @@ static int udd_probe(struct usb_interface *intf,
 #else
     udd_drm_setup(intf, id);
 #endif
+
+#if UDD_ENABLE_INPUT_SUPPORT
+    udd_input_setup(intf, id);
+#endif
+
     return 0;
 }
 
@@ -220,6 +212,10 @@ static void udd_disconnect(struct usb_interface *intf)
     udd_fb_cleanup(intf);
 #else
     udd_drm_cleanup(intf);
+#endif
+
+#if UDD_ENABLE_INPUT_SUPPORT
+    udd_input_cleanup(intf);
 #endif
 }
 
