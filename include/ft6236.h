@@ -29,6 +29,8 @@
 #define FT6236_PIN_SDA  26
 #define FT6236_PIN_RST  18
 
+#define FT6236_POLLING_PERIOD 33
+
 #define CT_MAX_TOUCH  5
 
 #define FT_REG_DEVICE_MODE 	    0x00    // Device mode, 0x00: Normal mode, 0x04: Test mode, 0x03: Factory mode

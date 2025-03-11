@@ -38,7 +38,7 @@ if(OVERCLOCK_ENABLED)
         #  3  | 360MHz  |  90MHz    |  1.20(V)
         #  4  | 400MHz  |  100MHz   |  1.30(V)
         #  5  | 416MHz  |  104MHz   |  1.30(V)
-        set(OVERCLOCK_PROFILE 5)
+        set(OVERCLOCK_PROFILE 4)
 
         if(OVERCLOCK_PROFILE EQUAL 1)
             set(SYS_CLK_KHZ 240000)             # CPU clock speed
@@ -101,7 +101,7 @@ set(LCD_HOR_RES 480)
 set(LCD_VER_RES 320)
 set(DISP_OVER_PIO 1) # 1: PIO, 0: GPIO
 set(PIO_USE_DMA   1)   # 1: use DMA, 0: not use DMA
-set(I80_BUS_WR_CLK_KHZ 58000)
+set(I80_BUS_WR_CLK_KHZ 50000)
 
 # Rotation configuration
 set(LCD_ROTATION 1)  # 0: normal, 1: 90 degree, 2: 180 degree, 3: 270 degree
@@ -114,6 +114,13 @@ elseif(${LCD_ROTATION} EQUAL 1 OR ${LCD_ROTATION} EQUAL 3)
 else()
     message(FATAL_ERROR "ERROR: Invalid Display rotation")
 endif()
+
+# Decoder seclection
+# Note: This affects the decoding rate.
+#     |  Name    |  Format |
+#  0  |  tjpgd   |  jpeg   |
+#  1  | JPEGDEC  |  jpeg   |
+set(DECODER_TYPE 1)
 
 include_directories(. ../include)
 
@@ -135,8 +142,8 @@ file(GLOB_RECURSE COMMON_SOURCES
     main.c
     ili9488.c
     ft6236.c
-    i2c_tools.c
     backlight.c
+    decoder.c
 )
 
 # rest of your project
@@ -151,6 +158,7 @@ target_link_libraries(${PROJECT_NAME}
     pio_i80
     usb_device
     tjpg_decoder
+    jpegdec
 )
 target_include_directories(${PROJECT_NAME} PUBLIC .)
 
@@ -168,7 +176,7 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC LCD_ROTATION=${LCD_ROTATION})
 target_compile_definitions(${PROJECT_NAME} PUBLIC LCD_HOR_RES=${LCD_HOR_RES})
 target_compile_definitions(${PROJECT_NAME} PUBLIC LCD_VER_RES=${LCD_VER_RES})
 target_compile_definitions(${PROJECT_NAME} PUBLIC DISP_OVER_PIO=${DISP_OVER_PIO})
-target_compile_definitions(${PROJECT_NAME} PUBLIC MY_DISP_BUF_SIZE=${MY_DISP_BUF_SIZE})
+target_compile_definitions(${PROJECT_NAME} PUBLIC DECODER_TYPE=${DECODER_TYPE})
 
 # Note: If you are using a NOR flash like "w25q16". Just keep the following content.
 # The maximum speed of "w25q16" is 133MHz, However, the clock speed of XIP QSPI is divided from "sys_clk".

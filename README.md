@@ -16,16 +16,17 @@ linux驱动目前还在开发中，位于`host/linux`下，参见[主机端软�
 - [ ] UDD 协议开发
 - [ ] 添加一个系统工作流程图
 - [ ] 设备端双核工作
-- [ ] 更好的编解码过程
-- [ ] linux 驱动输入支持
+- [x] 更好的编解码过程
+- [x] linux 驱动触摸支持
 - [x] linux DRM 驱动
 - [ ] linux驱动引入sysfs支持动态调整参数或行为
+- [ ] 整理 pico 代码
 
 ## 特性
 
 - 开箱即用
 - 兼容 Pico 和 Pico2 核心板
-- 平均 15 FPS 的刷新速率
+- 平均 30 FPS 的刷新速率
 - DRM 支持
 - 开源驱动
 
@@ -94,8 +95,8 @@ Bus 001 Device 039: ID 2e8a:0001 embeddedboys USB Display
 
 安装前置Python库
 ```
-sudo pip3 install pyusb
-sudo apt install python3-opencv
+sudo pip3 install pyusb --break-system-packages
+sudo pip3 install opencv-python --break-system-packages
 ```
 
 您可能需要调整脚本中的`JPEG_QUALITY`参数来确保正常运行。
@@ -103,7 +104,7 @@ sudo apt install python3-opencv
 1. 测试 JPG 图片显示
 
 ```bash
-sudo ./scripts/jpg_viewer.py ~/Pictures/pico_dm_yt350s006.jpg
+sudo ./scripts/img_viewer.py ~/Pictures/pico_dm_yt350s006.jpg
 ```
 
 2. 测试 MP4 视频播放
@@ -112,7 +113,7 @@ sudo ./scripts/jpg_viewer.py ~/Pictures/pico_dm_yt350s006.jpg
 sudo ./scripts/mp4_player.py ~/Downloads/行走的高原大米饭，鼠兔.mp4
 ```
 
-> 受限于设备性能，建议您将视频帧率降低至 `15 FPS` 以获得更流畅的效果
+> 受限于设备性能，建议您将视频帧率降低至 `30 FPS` 以获得更流畅的效果
 
 ### Linux DRM 驱动
 
@@ -314,17 +315,29 @@ sudo insmod udd.ko
 
 #### 卸载驱动
 
-在执行其他python脚本前，您应当先卸载此驱动程序
+在执行其他 python 脚本前，您应当先卸载此驱动程序
 
 卸载驱动前，请先退出所有正在使用fbdev的应用，然后尝试执行如下命令
 ```bash
 sudo rmmod udd
 ```
-如果提示驱动正在使用中，说明驱动不支持动态卸载。
+如果提示驱动正在使用中，说明驱动不支持动态卸载，请重启系统以卸载驱动。
 
 ### Windows 驱动
 
 我不是 Windows 驱动开发人员，这可能需要一些时间。。。
+
+相关链接：
+
+[Indirect display driver overview](https://learn.microsoft.com/zh-cn/windows-hardware/drivers/display/indirect-display-driver-model-overview)
+
+[https://github.com/VirtualDisplay/Virtual-Display-Driver](https://github.com/VirtualDisplay/Virtual-Display-Driver)
+
+[https://github.com/roshkins/IddSampleDriver.git](https://github.com/roshkins/IddSampleDriver.git)
+
+[indirect-display-driver-model-overview.md](https://github.com/MicrosoftDocs/windows-driver-docs/blob/staging/windows-driver-docs-pr/display/indirect-display-driver-model-overview.md)
+
+[https://github.com/microsoft/Windows-driver-samples/tree/main/usb/usbsamp](https://github.com/microsoft/Windows-driver-samples/tree/main/usb/usbsamp)
 
 ## 开发
 

@@ -13,29 +13,32 @@
 extern "C" {
 #endif
 
+#include "ft6236.h"
 #include "usb_common.h"
 
 #define VENDOR_ID  0x2E8A
 #define PRODUCT_ID 0x0001
 
-#define EP0_IN_ADDR (USB_DIR_IN | 0)
+#define EP0_IN_ADDR  (USB_DIR_IN  | 0)
 #define EP0_OUT_ADDR (USB_DIR_OUT | 0)
 #define EP1_OUT_ADDR (USB_DIR_OUT | 1)
-#define EP2_IN_ADDR (USB_DIR_IN | 2)
+#define EP2_IN_ADDR  (USB_DIR_IN  | 2)
+#define EP3_OUT_ADDR (USB_DIR_OUT | 3)
+#define EP4_IN_ADDR  (USB_DIR_IN  | 4)
 
-#define STAGE_SETUP 0
-#define STAGE_DATA 1
+#define STAGE_SETUP  0
+#define STAGE_DATA   1
 #define STAGE_STATUS 2
-#define STATUS_OK 0
-#define STATUS_BUSY 1
-#define STATUS_BUFFER_OVERFLOW 2
-#define STATUS_LENGTH_OVERFLOW 3
-#define PACKET_SIZE_CONTROL 64
-#define PACKET_SIZE_INTERRUPT 64
-#define PACKET_SIZE_BULK 64
-#define PACKET_SIZE_ISO_128 128
-#define PACKET_SIZE_ISO_256 256
-#define PACKET_SIZE_ISO_512 512
+#define STATUS_OK    0
+#define STATUS_BUSY  1
+#define STATUS_BUFFER_OVERFLOW  2
+#define STATUS_LENGTH_OVERFLOW  3
+#define PACKET_SIZE_CONTROL    64
+#define PACKET_SIZE_INTERRUPT  64
+#define PACKET_SIZE_BULK       64
+#define PACKET_SIZE_ISO_128   128
+#define PACKET_SIZE_ISO_256   256
+#define PACKET_SIZE_ISO_512   512
 #define UNKNOWN_SIZE -1
 
 typedef void (*usb_ep_handler)(uint8_t *buf, uint16_t len);
@@ -44,6 +47,8 @@ typedef void (*usb_control_transfer_handler)(uint8_t *buf, volatile struct usb_s
 void control_transfer_handler(uint8_t *buf, volatile struct usb_setup_packet *pkt, uint8_t stage);
 void ep1_out_handler(uint8_t *buf, uint16_t len);
 void ep2_in_handler(uint8_t *buf, uint16_t len);
+void ep3_out_handler(uint8_t *buf, uint16_t len);
+void ep4_in_handler(uint8_t *buf, uint16_t len);
 
 static const struct usb_endpoint_descriptor ep0_out = {
     .bLength          = sizeof(struct usb_endpoint_descriptor),
@@ -63,6 +68,9 @@ static const struct usb_endpoint_descriptor ep0_in = {
     .bInterval        = 0
 };
 
+/*
+ * Endpoint 1 is used for compressed image transfer only.
+ */
 static const struct usb_endpoint_descriptor ep1_out = {
     .bLength          = sizeof(struct usb_endpoint_descriptor),
     .bDescriptorType  = USB_DT_ENDPOINT,
@@ -72,6 +80,10 @@ static const struct usb_endpoint_descriptor ep1_out = {
     .bInterval        = 1
 };
 
+/*
+ * Endpoint 2 is used by the host to query parameters
+ * including screen size and firmware version, among others.
+ */
 static const struct usb_endpoint_descriptor ep2_in = {
     .bLength          = sizeof(struct usb_endpoint_descriptor),
     .bDescriptorType  = USB_DT_ENDPOINT,
@@ -79,6 +91,32 @@ static const struct usb_endpoint_descriptor ep2_in = {
     .bmAttributes     = USB_TRANSFER_TYPE_BULK,
     .wMaxPacketSize   = PACKET_SIZE_BULK,
     .bInterval        = 1
+};
+
+/*
+ * Endpoint 3 is used by the host to set parameters,
+ * such as some queried in Endpoint 2. You can find
+ * the relevant instructions in udd_protocal.h.
+ */
+static const struct usb_endpoint_descriptor ep3_out = {
+    .bLength          = sizeof(struct usb_endpoint_descriptor),
+    .bDescriptorType  = USB_DT_ENDPOINT,
+    .bEndpointAddress = EP3_OUT_ADDR,
+    .bmAttributes     = USB_TRANSFER_TYPE_INTERRUPT,
+    .wMaxPacketSize   = PACKET_SIZE_INTERRUPT,
+    .bInterval        = 10
+};
+
+/*
+ * Endpoint 4 is exclusively used for host touch event polling.
+ */
+static const struct usb_endpoint_descriptor ep4_in = {
+    .bLength          = sizeof(struct usb_endpoint_descriptor),
+    .bDescriptorType  = USB_DT_ENDPOINT,
+    .bEndpointAddress = EP4_IN_ADDR,
+    .bmAttributes     = USB_TRANSFER_TYPE_INTERRUPT,
+    .wMaxPacketSize   = PACKET_SIZE_INTERRUPT,
+    .bInterval        = FT6236_POLLING_PERIOD
 };
 
 struct usb_endpoint_configuration {
@@ -145,10 +183,10 @@ static struct usb_configuration_descriptor config_descriptor = {
     .bNumInterfaces      = 1,
     .bConfigurationValue = 1,       // Configuration 1
     .iConfiguration      = 0,       // No string
-    .bmAttributes        = 0xc0,    // attributes: self powered, no remote wakeup
-    .bMaxPower           = 0x32     // 100ma
-    // .bmAttributes        = 0x80,    // attributes: bus powered
-    // .bMaxPower           = 0xFA     // 500ma
+    // .bmAttributes        = 0xc0,    // attributes: self powered, no remote wakeup
+    // .bMaxPower           = 0x32     // 100ma
+    .bmAttributes        = 0x80,    // attributes: bus powered
+    .bMaxPower           = 0xFA     // 500ma
 };
 
 static const unsigned char lang_descriptor[] = {

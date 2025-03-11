@@ -7,7 +7,11 @@
 #define INFO_TAG "[INFO] "
 #define WARN_TAG "[WARN] "
 
-#if defined DEBUG
+#ifndef DEBUG
+        #define DEBUG 0
+#endif
+
+#if DEBUG
 #define pr_debug(fmt, ...) printf(DEBUG_TAG fmt, ##__VA_ARGS__)
 #else
 #define pr_debug(fmt, ...)

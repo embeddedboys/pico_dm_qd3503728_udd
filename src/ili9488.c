@@ -350,9 +350,9 @@ static int ili9488_hw_init(struct ili9488_priv *priv)
     priv->tftops->init_display(priv);
     priv->tftops->set_dir(priv, priv->display->rotate);
 
-    printf("clearing screen...\n");
+    // printf("clearing screen...\n");
     /* clear screen to black */
-    priv->tftops->clear(priv, 0x0);
+    // priv->tftops->clear(priv, 0x0);
 
     return 0;
 }

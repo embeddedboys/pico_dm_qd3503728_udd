@@ -9,8 +9,10 @@
 #include "usb_config.h"
 
 static uint8_t ep0_buf[4096];
-static uint8_t ep1_buf[40000];
-static uint8_t ep2_buf[40000];
+static uint8_t ep1_buf[65536];
+static uint8_t ep2_buf[128];
+static uint8_t ep3_buf[128];
+static uint8_t ep4_buf[128];
 
 static struct usb_device_configuration dev_config = {
     .device_descriptor        = &device_descriptor,
@@ -45,6 +47,20 @@ static struct usb_device_configuration dev_config = {
             .double_buffer = true,
             .data_buffer = ep2_buf,
             .data_buffer_size = sizeof(ep2_buf),
+        },
+        {
+            .descriptor = &ep3_out,
+            .handler = &ep3_out_handler,
+            .double_buffer = true,
+            .data_buffer = ep3_buf,
+            .data_buffer_size = sizeof(ep3_buf),
+        },
+        {
+            .descriptor = &ep4_in,
+            .handler = &ep4_in_handler,
+            .double_buffer = true,
+            .data_buffer = ep4_buf,
+            .data_buffer_size = sizeof(ep4_buf),
         }
     }
 };
