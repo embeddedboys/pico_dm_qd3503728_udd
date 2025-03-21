@@ -46,7 +46,7 @@ JPEGIMAGE jpeg;
 uint start_time, end_time;
 uint frame_count;
 
-void draw_mcus(JPEGDRAW *pDraw)
+int draw_mcus(JPEGDRAW *pDraw)
 {
 	int iCount = pDraw->iWidth * pDraw->iHeight;
 	int xs = pDraw->x;
@@ -55,6 +55,7 @@ void draw_mcus(JPEGDRAW *pDraw)
 	int ye = pDraw->y + pDraw->iHeight - 1;
 
 	ili9488_video_flush(xs, ys, xe, ye, pDraw->pPixels, iCount);
+    return iCount;
 }
 
 static void jpegenc_drawjpg(int x, int y, uint8_t *jpeg_data, uint32_t jpeg_size)
@@ -114,7 +115,7 @@ int main(void)
         start_time = time_us_32();
 
         /* Do JPEG decode here */
-	jpegenc_drawjpg(0, 0, screen_480x320, sizeof(screen_480x320));
+	jpegenc_drawjpg(0, 0, (uint8_t *)screen_480x320, sizeof(screen_480x320));
 
         end_time = time_us_32();
 
