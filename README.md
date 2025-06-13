@@ -259,8 +259,58 @@ cd lv_port_linux
 mkdir build && cd build
 ninja
 
-# 运行
+# 运行。 假设 usb 屏幕注册到了 fb1 上
 LV_LINUX_FBDEV_DEVICE=/dev/fb1 ../bin/lvglsim
+```
+
+启用并测试 lvgl 输入功能
+```bash
+❯ vim lv_conf.h
+```
+
+```c
+# 启用如下选项
+/*Driver for evdev input devices*/
+#define LV_USE_EVDEV    1
+```
+
+```bash
+❯ vim main.c
+```
+
+```c
+# 注释掉main.c 中的 widgets demo 滚动效果
+/*Create a Demo*/
+lv_demo_widgets();
+// lv_demo_widgets_start_slideshow();
+```
+
+修改完成后重新编译
+
+使用evtest工具查看，并测试系统的输入设备
+```bash
+> sudo apt install evtest -y
+
+> sudo evtest
+No device specified, trying to scan all of /dev/input/event*
+Available devices:
+/dev/input/event0:      UDD touch panel
+Select the device event number [0-0]: 0
+
+# 输入 0 后回车，此时用手指触摸屏幕，可以看到输出了如下日志
+
+Testing ... (interrupt to exit)
+Event: time 1749625794.915653, type 1 (EV_KEY), code 330 (BTN_TOUCH), value 1
+Event: time 1749625794.915653, type 3 (EV_ABS), code 0 (ABS_X), value 221
+Event: time 1749625794.915653, type 3 (EV_ABS), code 1 (ABS_Y), value 130
+Event: time 1749625794.915653, -------------- SYN_REPORT ------------
+Event: time 1749625795.075705, type 1 (EV_KEY), code 330 (BTN_TOUCH), value 0
+Event: time 1749625795.075705, -------------- SYN_REPORT ------------
+```
+
+通过上述工具我们可以得知 UDD 屏幕的输入驱动注册到了 `/dev/input/event0`，则运行如下命令测试 demo
+```bash
+sudo LV_LINUX_EVDEV_POINTER_DEVICE=/dev/input/event0 LV_LINUX_FBDEV_DEVICE=/dev/fb1 ../bin/lvglsim
 ```
 
 #### 树莓派 Xorg server
