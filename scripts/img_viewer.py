@@ -23,7 +23,7 @@ TARGET_WIDTH = 480
 TARGET_HEIGHT = 320
 
 # JPEG quality for compression (1 to 100, higher is better quality)
-JPEG_QUALITY = 85
+JPEG_QUALITY = 50
 
 EP_DIR_OUT = 0x00
 EP_DIR_IN = 0X80
@@ -62,7 +62,8 @@ def main():
         pic = f.read()
         if len(pic) % 2 != 0:
             pic = pic + b'\xff'
-        buffer = [0x51, len(pic) & 0xFF, len(pic) >> 8, 0x00]
+        # buffer = [0x51, len(pic) & 0xFF, len(pic) >> 8, 0x00]
+        buffer = [len(pic) & 0xFF, len(pic) >> 8]
         dev = usb.core.find(idVendor=0x2E8A, idProduct=0x0001)
         if dev is None:
             raise ValueError('Device not found')

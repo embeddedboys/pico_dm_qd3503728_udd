@@ -133,6 +133,7 @@ target_compile_definitions(pio_i80 PUBLIC PIO_USE_DMA=${PIO_USE_DMA})
 target_compile_definitions(pio_i80 PUBLIC I80_BUS_WR_CLK_KHZ=${I80_BUS_WR_CLK_KHZ})
 
 add_subdirectory(usb)
+add_subdirectory(cherryusb)
 add_subdirectory(tjpgd)
 add_subdirectory(jpegdec)
 add_subdirectory(tests)
@@ -156,7 +157,8 @@ target_link_libraries(${PROJECT_NAME}
     hardware_pwm
     hardware_i2c
     pio_i80
-    usb_device
+    # usb_device
+    cherryusb_device
     tjpg_decoder
     jpegdec
 )

@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 
 # Set any variables required for importing libraries
 SET(FREERTOS_KERNEL_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/FreeRTOS-Kernel)
+SET(CHERRY_USB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/CherryUSB)
 
 # initialize the SDK based on PICO_SDK_PATH
 # note: this must happen before project()

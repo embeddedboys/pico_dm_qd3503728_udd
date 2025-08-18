@@ -56,7 +56,7 @@ QueueHandle_t xToFlushQueue = NULL;
 static portTASK_FUNCTION(jpg_task_handler, pvParameters)
 {
     ili9488_driver_init();
-    ft6236_driver_init();
+    // ft6236_driver_init();
 
     decoder_drawimg(0, 0, (uint8_t *)screen_480x320, sizeof(screen_480x320));
 
@@ -116,8 +116,8 @@ int main(void)
                     CLOCKS_CLK_PERI_CTRL_AUXSRC_VALUE_CLK_SYS,
                     CPU_SPEED_MHZ * MHZ,
                     CPU_SPEED_MHZ * MHZ);
-    stdio_uart_init_full(uart0, 115200, 16, 17);
-    // stdio_uart_init_full(uart1, 115200, 23, 24);
+    // stdio_uart_init_full(uart0, 115200, 16, 17);
+    stdio_uart_init_full(uart1, 115200, 23, 24);
 
     pr_info("\n\n\nPICO DM QD3503728 USB Display Device\n");
 
@@ -135,9 +135,9 @@ int main(void)
     xTaskCreate(jpg_task_handler, "jpg_task", 256, NULL, (tskIDLE_PRIORITY + 2), &jpg_handler);
     vTaskCoreAffinitySet(jpg_handler, (1 << 1));
 
-    TaskHandle_t tp_handler;
-    xTaskCreate(tp_task_handler, "tp_task", 256, NULL, (tskIDLE_PRIORITY + 1), &tp_handler);
-    vTaskCoreAffinitySet(tp_handler, (1 << 1));
+    // TaskHandle_t tp_handler;
+    // xTaskCreate(tp_task_handler, "tp_task", 256, NULL, (tskIDLE_PRIORITY + 1), &tp_handler);
+    // vTaskCoreAffinitySet(tp_handler, (1 << 1));
 
     pr_info("calling freertos scheduler, %lld\n", time_us_64());
     vTaskStartScheduler();

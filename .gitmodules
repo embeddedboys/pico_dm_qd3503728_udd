@@ -1,3 +1,6 @@
 [submodule "lib/FreeRTOS-Kernel"]
 	path = lib/FreeRTOS-Kernel
 	url = https://gitee.com/embeddedboys/FreeRTOS-Kernel
+[submodule "lib/CherryUSB"]
+	path = lib/CherryUSB
+	url = https://gitee.com/sakumisu/CherryUSB.git
