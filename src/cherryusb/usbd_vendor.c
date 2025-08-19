@@ -39,19 +39,20 @@ static int vendor_request_handler(uint8_t busid, struct usb_setup_packet *setup,
     //              "bRequest 0x%02x\r\n",
     //              __func__,
     //              setup->bRequest);
+    uint8_t cmd;
+    uint16_t transfer_size;
 
     switch (setup->bRequest) {
         case REQ_EP1_OUT:
-            // USB_LOG_WRN("REQ_EP1_OUT : 0x%02x, len : %d\r\n", setup->bRequest, *len);
             // usb_hexdump(*data, *len);
-            uint16_t transfer_size;
+            memcpy(&cmd, (*data)++, sizeof(cmd));
             memcpy(&transfer_size, *data, sizeof(transfer_size));
-            // printf("%s, ep1_out setup size : %d\n", __func__, transfer_size);
+            // USB_LOG_WRN("%s, req_ep1_out, cmd : 0x%02x, size : %d\n", __func__, cmd, transfer_size);
             usbd_ep_start_read(busid, EP1_OUT_ADDR, ep1_read_buffer, transfer_size);
             // usb_hexdump(ep1_read_buffer, transfer_size);
             return 0;
         default:
-            USB_LOG_WRN("Unhandled XXX Class bRequest 0x%02x\r\n", setup->bRequest);
+            // USB_LOG_WRN("Unhandled XXX Class bRequest 0x%02x\r\n", setup->bRequest);
             return -1;
     }
 

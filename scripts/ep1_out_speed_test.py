@@ -25,8 +25,8 @@ kBs = 0
 buffer = bytearray((i % 10) + 0x30 for i in range(size))
 
 # 通知设备数据大小 (低16位)
-size_buffer = [size & 0xFF, (size >> 8) & 0xFF]
-print(size_buffer)
+size_buffer = [0x51, size & 0xFF, (size >> 8) & 0xFF, 0x00]
+print(size_buffer, len(buffer))
 
 for i in range(repeat):
     dev.ctrl_transfer(TYPE_VENDOR | EP_DIR_OUT, REQ_EP1_OUT, 0, 0, size_buffer)

@@ -19,12 +19,12 @@ extern "C" {
 #define EP3_OUT_ADDR (USB_EP_DIR_OUT | 3)
 #define EP4_IN_ADDR  (USB_EP_DIR_IN  | 4)
 
-#define REQ_EP0_OUT 0X00
-#define REQ_EP0_IN 0X01
-#define REQ_EP1_OUT 0X02
-#define REQ_EP2_IN 0X03
-#define REQ_EP3_OUT 0X04
-#define REQ_EP4_IN 0X05
+#define REQ_EP0_OUT     0X00
+#define REQ_EP0_IN      0X01
+#define REQ_EP1_OUT     0X02
+#define REQ_EP2_IN      0X03
+#define REQ_EP3_OUT     0X04
+#define REQ_EP4_IN      0X05
 
 // static const struct usb_device_descriptor device_descriptor = {
 //     .bLength            = sizeof(struct usb_device_descriptor),
